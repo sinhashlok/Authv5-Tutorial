@@ -1,18 +1,23 @@
 import { type NextAuthConfig } from "next-auth";
-import { CredentialsSignin } from "@auth/core/errors";
 import Credentials from "next-auth/providers/credentials";
 import bcryptjs from "bcryptjs";
 
 import { LoginSchema } from "./schemas";
 import { getUserByEmail } from "./data/user";
 
-class CustomError extends CredentialsSignin {
-  code = "custom";
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+  emailVerified: Date | null;
+  image: string | null;
+  password: string | null;
 }
 
 export default {
   providers: [
     Credentials({
+      // @ts-ignore
       async authorize(credentials) {
         const validatedFields = LoginSchema.safeParse(credentials);
 
@@ -23,7 +28,7 @@ export default {
 
           if (!user || !user.password) {
             // no password - if login with google / github
-            throw new CustomError();
+            return null;
           }
 
           const passwordMatch = await bcryptjs.compare(password, user.password);
@@ -31,7 +36,7 @@ export default {
             return user;
           }
 
-          throw new CustomError();
+          return null;
         }
       },
     }),
