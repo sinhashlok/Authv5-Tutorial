@@ -5,7 +5,6 @@ import { db } from "./lib/db";
 import authConfig from "@/auth.config";
 import { getUserById } from "./data/user";
 import { UserRole } from "@prisma/client";
-import { date } from "zod";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   pages: {
@@ -21,6 +20,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
   },
   callbacks: {
+    async signIn({ user, account }) {
+      // Allow OAuth without verification
+      if (account?.provider !== "credentials") {
+        return true;
+      }
+
+      const existingUser = await getUserById(user.id || "");
+      if (!existingUser?.emailVerified) {
+        // Prevent sign in without email verification
+        return false;
+      }
+
+      return false;
+    },
     async session({ token, session }) {
       // async function that allows us to control what happens when an action is performed
       if (token.sub && session.user) {
