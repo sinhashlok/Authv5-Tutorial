@@ -32,7 +32,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         return false;
       }
 
-      return false;
+      return true;
     },
     async session({ token, session }) {
       // async function that allows us to control what happens when an action is performed
